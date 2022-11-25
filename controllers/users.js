@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 const User = require('../models/users')
 
 function isStringInvalid(string){
@@ -22,14 +23,18 @@ const signup = async (req,res) => {
         const hashPassword = await bcrypt.hash(password,saltrounds)
         console.log("123",hashPassword)
     
-        await User.create({name,email,password : hashPassword})
-        res.status(201).json({message:"successfully created new user" })
+        await User.create({name,email,password : hashPassword,ispremiumuser:false})
+        res.status(201).json({message:"signup successful",success:true })
         
     }
        
     catch(err){
-        res.status(500).json(err)
+        res.status(500).json({message:err,success:false})
     }
+ }
+
+ function generateAccessToken(id){
+    return jwt.sign({userId: id},process.env.TOKEN_SECRET)
  }
 
  const login = async(req,res) => {
@@ -44,7 +49,7 @@ const signup = async (req,res) => {
         if(user.length>0){
             bcrypt.compare(password,user[0].password,(req,result) => {
                 if(result === true){
-                    res.status(200).json({message: "user login successful",success:true})
+                    res.status(200).json({message: "user login successful",success:true,user:user,token: generateAccessToken(user[0].id),ispremiumuser:user[0].ispremiumuser})
                 }else{
                 res.status(401).json({message: "user not authorized",success:false})
                 }
