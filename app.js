@@ -30,9 +30,6 @@ app.use(cors())
 
 app.use(bodyParser.json())
 
-const privateKey = fs.readFileSync('server.key')
-const certificate = fs.readFileSync('server.cert')
-
 app.use('/user',userRoutes)
 app.use('/expense',expenseRoutes)
 app.use('/purchase',purchaseRoutes)
@@ -59,8 +56,7 @@ Downloadurl.belongsTo(User);
 
 sequelize.sync()
   .then(() => {
-    // https.createServer({key: privateKey,cert: certificate},app).listen(3000)
-    app.listen(3000)
+    app.listen(process.env.PORT || 3000)
   })
   .catch((err) => {
     console.log(err)
