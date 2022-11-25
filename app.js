@@ -3,9 +3,11 @@ var cors = require('cors')
 const path = require('path')
 const bodyParser = require('body-parser')
 const jwt = require('jsonwebtoken')
+const compression = require('compression')
 const helmet = require('helmet')
 const morgan = require('morgan')
 const fs = require('fs')
+const https = require('https')
 const dotenv = require('dotenv')
 dotenv.config()
 
@@ -28,6 +30,9 @@ app.use(cors())
 
 app.use(bodyParser.json())
 
+const privateKey = fs.readFileSync('server.key')
+const certificate = fs.readFileSync('server.cert')
+
 app.use('/user',userRoutes)
 app.use('/expense',expenseRoutes)
 app.use('/purchase',purchaseRoutes)
@@ -36,6 +41,7 @@ app.use('/password',resetPasswordRoutes)
 const accessLogStream = fs.createWriteStream(path.join(__dirname,'access.log'),{flag:'a'})
 
 app.use(helmet())
+app.use(compression())
 app.use(morgan('combined',{stream: accessLogStream}))
 
 User.hasMany(Expense)
@@ -53,6 +59,7 @@ Downloadurl.belongsTo(User);
 
 sequelize.sync()
   .then(() => {
+    // https.createServer({key: privateKey,cert: certificate},app).listen(3000)
     app.listen(3000)
   })
   .catch((err) => {
